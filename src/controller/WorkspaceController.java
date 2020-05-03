@@ -1,5 +1,8 @@
 package controller;
 
+import java.awt.Component;
+import java.awt.Point;
+import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.Observable;
 import java.util.Observer;
@@ -9,8 +12,10 @@ import javax.swing.JTabbedPane;
 import model.Connections;
 import model.Tab;
 import model.TabList;
+import view.CloseBracket;
 import view.DoubleBar;
 import view.Icons;
+import view.OpenBracket;
 import view.Workspace;
 
 /**
@@ -18,7 +23,7 @@ import view.Workspace;
  * Model class Tab and performs the required actions.
  * 
  * @author Parikshith Kedilaya Mallar
- * @version 1.0
+ * @version 4.0
  *
  */
 public class WorkspaceController implements Observer {
@@ -26,14 +31,17 @@ public class WorkspaceController implements Observer {
 	private IconFactory iconFactory;
 	private JTabbedPane tabbedPane;
 
-	public void setTabbedPane(JTabbedPane tabbedPane) {
-		this.tabbedPane = tabbedPane;
-	}
-
 	public WorkspaceController() {
 		iconFactory = new IconFactory();
 	}
 
+	public void setTabbedPane(JTabbedPane tabbedPane) {
+		this.tabbedPane = tabbedPane;
+	}
+
+	/**
+	 * Create Workspace when a new tab is added on Pound
+	 */
 	private void createWorkspace() {
 		TabList tabList = TabList.getInstance();
 		Workspace workspace = new Workspace();
@@ -44,14 +52,13 @@ public class WorkspaceController implements Observer {
 		tabList.getRecentTab().addObserver(workspaceController);
 		tabbedPane.add("Tab " + tabList.getSize(), workspace);
 	}
-	
+
 	@Override
 	public void update(Observable o, Object arg) {
-		if(o.getClass().getName().equals("view.Pound")) {
+		if (o.getClass().getName().equals("view.Pound")) {
 			String[] args = (String[]) arg;
 			tabbedPane.setTitleAt(Integer.parseInt(args[0]), args[1]);
-		}
-		else {
+		} else {
 			if (arg == "Clicked") {
 				newShape();
 			} else if (arg == "Pressed") {
@@ -64,9 +71,118 @@ public class WorkspaceController implements Observer {
 				drawLine(false);
 			} else if (arg == "DoubleClicked") {
 				doubleClick();
+			} else if (arg == "RightClick") {
+				rightClick();
+			} else if (arg == "DotClicked") {
+				deleteConnection();
+			} else if (arg == "BarClicked") {
+				deleteAllConnections();
 			}
 		}
 		repaint();
+	}
+
+	private void rightClick() {
+		deleteIcons();
+	}
+
+	/**
+	 * On right click Delete an Icon after User selects Yes on prompt
+	 */
+	private void deleteIcons() {
+		Tab tab = TabList.getInstance().getTab();
+		Icons icon = searchIcons(tab);
+		if (icon != null && tab.getWorkspace().prompt("Delete Node?")) {
+			tab.getIconList().remove(icon);
+			icon.removeDots();
+			removeConnections(icon);
+			checkSingleInstanceIcons(tab, icon);
+		}
+	}
+
+	/**
+	 * On right click Delete a connection after User selects Yes on prompt
+	 */
+	private void deleteConnection() {
+		Tab tab = TabList.getInstance().getTab();
+		ListIterator<Connections> iterator = tab.getConnectionList().listIterator();
+		while (iterator.hasNext()) {
+			Connections conn = iterator.next();
+			if ((conn.getDestPoint().distance(tab.getPoint()) <= 10
+					|| conn.getOriginPoint().distance(tab.getPoint()) <= 10)
+					&& tab.getWorkspace().prompt("Delete Connection?")) {
+				enableButtons(conn.getDestPoint());
+				enableButtons(conn.getOriginPoint());
+				iterator.remove();
+			}
+		}
+	}
+
+	/**
+	 * On right click Delete all connections on that bar after User selects Yes on
+	 * prompt
+	 */
+	private void deleteAllConnections() {
+		Tab tab = TabList.getInstance().getTab();
+		ListIterator<Connections> iterator = tab.getConnectionList().listIterator();
+		if (tab.getWorkspace().prompt("Delete All Connections?")) {
+			while (iterator.hasNext()) {
+				Connections conn = iterator.next();
+				if ((conn.getDestPoint().distance(tab.getPoint()) <= 30
+						|| conn.getOriginPoint().distance(tab.getPoint()) <= 30)) {
+					enableButtons(conn.getDestPoint());
+					enableButtons(conn.getOriginPoint());
+					iterator.remove();
+				}
+			}
+		}
+	}
+
+	/**
+	 * Check if Open Bracket or Close Bracket is deleted and enable the dots
+	 * 
+	 * @param tab  - Current tab properties
+	 * @param icon - current icon to be deleted
+	 */
+	private void checkSingleInstanceIcons(Tab tab, Icons icon) {
+		if (icon instanceof OpenBracket) {
+			tab.setOpenBracketAdded(false);
+		} else if (icon instanceof CloseBracket) {
+			tab.setCloseBracketAdded(false);
+		}
+	}
+
+	/**
+	 * Remove connections associated with the removed icon
+	 * 
+	 * @param removedIcon - the icon user selected to be deleted
+	 */
+	private void removeConnections(Icons removedIcon) {
+		Iterator<Connections> connectionList = TabList.getInstance().getTab().getConnectionList().iterator();
+		while (connectionList.hasNext()) {
+			Connections connection = connectionList.next();
+			if (connection.getOriginIcon() == removedIcon) {
+				enableButtons(connection.getDestPoint());
+				connectionList.remove();
+			} else if (connection.getDestIcon() == removedIcon) {
+				enableButtons(connection.getOriginPoint());
+				connectionList.remove();
+			}
+		}
+	}
+
+	/**
+	 * Enable dots for open bracket/ close bracket when user deletes the connection
+	 * 
+	 * @param connection
+	 */
+	private void enableButtons(Point connection) {
+		Component[] componentAt = TabList.getInstance().getTab().getWorkspace().getComponents();
+		for (Component c : componentAt) {
+			if (c.getX() == connection.getX() && c.getY() == connection.getY()) {
+				c.setEnabled(true);
+			}
+		}
 	}
 
 	/**
@@ -116,7 +232,7 @@ public class WorkspaceController implements Observer {
 			if (drawnIcon != null) {
 				drawnIcon.drawShape(tab.getWorkspace().getGraphics());
 				tab.addIcon(drawnIcon);
-				if(drawnIcon.getClass().getName().equals("view.Pound")) {
+				if (drawnIcon.getClass().getName().equals("view.Pound")) {
 					createWorkspace();
 					drawnIcon.addObserver(TabList.getInstance().getRecentTab().getWorkspaceController());
 				}
