@@ -13,6 +13,7 @@ import java.util.ListIterator;
 
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
 import model.Connections;
 import model.Tab;
@@ -23,6 +24,7 @@ import model.TabList;
  * lines.
  * 
  * @author Parikshith Kedilaya Mallar
+ * @version 4.0
  *
  */
 public class Workspace extends JPanel implements MouseListener, MouseMotionListener, Serializable {
@@ -56,6 +58,8 @@ public class Workspace extends JPanel implements MouseListener, MouseMotionListe
 		Tab tab = TabList.getInstance().getTab();
 		if (e.getClickCount() == 2) {
 			tab.setPoint(point, "DoubleClicked");
+		} else if (SwingUtilities.isRightMouseButton(e)) {
+			tab.setPoint(point, "RightClick");
 		} else {
 			tab.setPoint(point, "Clicked");
 		}
@@ -138,6 +142,7 @@ public class Workspace extends JPanel implements MouseListener, MouseMotionListe
 
 		g.drawLine(x1, y1, x2, y2);
 		g.fillPolygon(xpoints, ypoints, 3);
+
 	}
 
 	public void setCrossHairCursor() {
@@ -147,7 +152,7 @@ public class Workspace extends JPanel implements MouseListener, MouseMotionListe
 	public void setDefaultCursor() {
 		setCursorMethod(Cursor.DEFAULT_CURSOR);
 	}
-	
+
 	public void setMovingCursor() {
 		setCursorMethod(Cursor.MOVE_CURSOR);
 	}
@@ -163,5 +168,13 @@ public class Workspace extends JPanel implements MouseListener, MouseMotionListe
 
 	public void displayMessage(String message) {
 		JOptionPane.showMessageDialog(this, message);
+	}
+
+	public boolean prompt(String message) {
+		int showConfirmDialog = JOptionPane.showConfirmDialog(this, message);
+		if (showConfirmDialog == 0) {
+			return true;
+		}
+		return false;
 	}
 }
