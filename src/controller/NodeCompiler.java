@@ -62,7 +62,6 @@ public class NodeCompiler {
 				tab.getWorkspace().displayMessage("Translated Successfully. Saved in file Translate.txt");
 
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				tab.getWorkspace().displayMessage("Could not translate the graph");
 				e.printStackTrace();
 			}
@@ -93,8 +92,6 @@ public class NodeCompiler {
 		} else {
 			tab.getWorkspace().displayMessage("Compilation Success");
 		}
-		// System.out.println("Translate Message = " + translateMessage);
-		// System.out.println("Error message = " + errorMessage);
 	}
 
 	/**
@@ -103,7 +100,6 @@ public class NodeCompiler {
 	 * @return
 	 */
 	public LinkedHashMap<Icons, LinkedList<Icons>> createAdjacencyList(Tab tab) {
-		// Tab tab = TabList.getInstance().getTab();
 		if (!checkIconCount()) {
 			tab.getWorkspace().displayMessage("Compilation Error: " + errorMessage);
 			return null;
@@ -148,21 +144,6 @@ public class NodeCompiler {
 
 		return adjList;
 
-		// Stack<Icons> stack = new Stack<Icons>();
-		// Icons start = getStartIcon(adjList);
-		// traverse(adjList, start, stack);
-		// for (Icons icon : tab.getIconList()) {
-		// icon.setFirstConnection(false);
-		// }
-
-		// if (!stack.isEmpty() || start == null) {
-		// if (start == null) {
-		// errorMessage = "One or more connections missing";
-		// }
-		// tab.getWorkspace().displayMessage("Compilation Error. " + errorMessage);
-		// } else {
-		// tab.getWorkspace().displayMessage("Compilation Success");
-		// }
 	}
 
 	/**
