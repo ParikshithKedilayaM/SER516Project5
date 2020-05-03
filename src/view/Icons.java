@@ -3,17 +3,20 @@ import java.awt.Graphics;
 import java.awt.Point;
 import java.io.Serializable;
 import java.util.List;
+import java.util.Observable;
+
+import model.TabList;
 
 /**
  * This is an abstract class where icons, dots and bars are declared.
  *@author Rishika Bera
  * @version 1.0
  */
-public abstract class Icons implements Serializable {
+public abstract class Icons extends Observable implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	private String description = "";
+	protected String description = "";
 
 	private boolean isFirstConnection = false;
 	
@@ -60,5 +63,18 @@ public abstract class Icons implements Serializable {
 	public void setBars(List<VerticalBar> bars) {
 		this.bars = bars;
 	}
-
+	
+	public void removeDots() {
+		if (dots != null) {
+			for (Dot dot : dots) {
+				TabList.getInstance().getTab().getWorkspace().remove(dot);
+			}
+		}
+		if (bars != null) {
+			for (VerticalBar bar : bars) {
+				TabList.getInstance().getTab().getWorkspace().remove(bar);
+			}
+		}
+	}
+	
 }
