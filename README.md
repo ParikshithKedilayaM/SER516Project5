@@ -1,2 +1,2 @@
 # SER516Project5
-![burndown](burndown.PNG)
+![burndown](burndown.png)
